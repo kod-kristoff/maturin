@@ -14,6 +14,7 @@ enum OS {
     Windows,
     Macos,
     FreeBSD,
+    Android,
 }
 
 /// Decides how to handle manylinux compliance
@@ -112,6 +113,7 @@ impl Target {
             platforms::target::OS::Windows => OS::Windows,
             platforms::target::OS::MacOS => OS::Macos,
             platforms::target::OS::FreeBSD => OS::FreeBSD,
+            platforms::target::OS::Android => OS::Android,
             unsupported => bail!("The operating system {:?} is not supported", unsupported),
         };
 
@@ -125,6 +127,7 @@ impl Target {
 
         // bail on any unsupported targets
         match (&os, &arch) {
+            // (OS::Android, Arch::X86) => bail!("32-bit not supported for Android"),
             (OS::FreeBSD, Arch::AARCH64) => bail!("aarch64 is not supported for FreeBSD"),
             (OS::FreeBSD, Arch::ARM7L) => bail!("arm7l is not supported for FreeBSD"),
             (OS::FreeBSD, Arch::X86) => bail!("32-bit wheels are not supported for FreeBSD"),
@@ -206,6 +209,7 @@ impl Target {
     /// Returns the platform for the tag in the shared libaries file name
     pub fn get_shared_platform_tag(&self) -> &'static str {
         match (&self.os, &self.arch) {
+            (OS::Android, Arch::AARCH64) => "aarch64-linux-android",
             (OS::FreeBSD, _) => "", // according imp.get_suffixes(), there are no such
             (OS::Linux, Arch::AARCH64) => "aarch64-linux-gnu", // aka armv8-linux-gnueabihf
             (OS::Linux, Arch::ARM7L) => "arm-linux-gnueabihf",
@@ -214,6 +218,9 @@ impl Target {
             (OS::Macos, Arch::X86_64) => "darwin",
             (OS::Windows, Arch::X86) => "win32",
             (OS::Windows, Arch::X86_64) => "win_amd64",
+            (OS::Android, _) => {
+                panic!("unsupported Android Arch should not have reached get_shared_platform_tag()")
+            }
             (OS::Macos, _) => {
                 panic!("unsupported macOS Arch should not have reached get_shared_platform_tag()")
             }
